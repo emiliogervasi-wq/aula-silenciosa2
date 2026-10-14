@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AulaSilenciosa - Sistema de Comunicación Accesible</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+        }
+        .pulse-red {
+            animation: pulse-red 1.5s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-green {
+            animation: pulse-green 1.5s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header / Barra Superior -->
+    <header class="bg-slate-800 border-b border-slate-700 px-4 py-3 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-xl text-white">
+                    <i class="fa-solid fa-bell text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                        AulaSilenciosa
+                        <span class="text-xs bg-indigo-500/30 text-indigo-300 border border-indigo-500/40 px-2 py-0.5 rounded-full font-medium">v3.0</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Sistema de alertas en tiempo real</p>
+                </div>
+            </div>
+
+            <!-- Selector de Rol y Código de Sala -->
+            <div class="flex items-center gap-2 bg-slate-900/80 p-1.5 rounded-xl border border-slate-700">
+                <div class="flex bg-slate-800 rounded-lg p-0.5">
+                    <button id="btnRoleStudent" onclick="switchRole('estudiante')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all bg-indigo-600 text-white shadow">
+                        <i class="fa-solid fa-user-graduate mr-1"></i> Alumno
+                    </button>
+                    <button id="btnRoleTeacher" onclick="switchRole('profesor')" class="px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-chalkboard-user mr-1"></i> Profesor
+                    </button>
+                </div>
+                <div class="flex items-center gap-1.5 pl-2 border-l border-slate-700">
+                    <span class="text-xs text-slate-400 font-medium">Sala:</span>
+                    <input type="text" id="roomInput" value="SALA-1" onchange="changeRoom()" class="bg-slate-800 border border-slate-600 text-white text-xs font-bold rounded px-2 py-1 w-20 text-center uppercase focus:outline-none focus:border-indigo-500">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 flex flex-col">
+
+        <!-- ================= VISTA ESTUDIANTE ================= -->
+        <div id="studentView" class="flex-1 flex flex-col gap-6">
+            
+            <!-- Estado de confirmación (oculto por defecto) -->
+            <div id="studentStatusCard" class="hidden transition-all duration-300">
+                <!-- Se llena dinámicamente -->
+            </div>
+
+            <div class="text-center md:text-left">
+                <h2 class="text-2xl font-extrabold text-white">¿Qué necesitas comunicar?</h2>
+                <p class="text-sm text-slate-400">Toca un botón para enviar una alerta instantánea a tu profesor</p>
+            </div>
+
+            <!-- Botones Táctiles de Alerta -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                
+                <!-- Baño Urgente -->
+                <button onclick="sendAlert('bano')" class="bg-slate-800 hover:bg-slate-750 border-2 border-red-500/50 hover:border-red-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-red-500/20 text-red-400 p-4 rounded-2xl group-hover:bg-red-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-restroom"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-red-400 uppercase tracking-wider block mb-0.5">Urgente</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">Baño urgente</h3>
+                        <p class="text-xs text-slate-400 mt-1">Necesito ir al baño ahora mismo</p>
+                    </div>
+                </button>
+
+                <!-- Enfermería -->
+                <button onclick="sendAlert('enfermeria')" class="bg-slate-800 hover:bg-slate-750 border-2 border-red-500/50 hover:border-red-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-red-500/20 text-red-400 p-4 rounded-2xl group-hover:bg-red-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-kit-medical"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-red-400 uppercase tracking-wider block mb-0.5">Salud</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">Me siento mal</h3>
+                        <p class="text-xs text-slate-400 mt-1">Necesito asistencia medica o dolor</p>
+                    </div>
+                </button>
+
+                <!-- Va muy rápido -->
+                <button onclick="sendAlert('rapido')" class="bg-slate-800 hover:bg-slate-750 border-2 border-amber-500/50 hover:border-amber-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-amber-500/20 text-amber-400 p-4 rounded-2xl group-hover:bg-amber-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-0.5">Ritmo</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">Va muy rápido</h3>
+                        <p class="text-xs text-slate-400 mt-1">Necesito un ritmo más pausado</p>
+                    </div>
+                </button>
+
+                <!-- Repetir -->
+                <button onclick="sendAlert('repetir')" class="bg-slate-800 hover:bg-slate-750 border-2 border-amber-500/50 hover:border-amber-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-amber-500/20 text-amber-400 p-4 rounded-2xl group-hover:bg-amber-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-amber-400 uppercase tracking-wider block mb-0.5">Comprensión</span>
+                        <h3 class="text-lg font-bold text-white leading-tight font-sans">¿Puede repetir?</h3>
+                        <p class="text-xs text-slate-400 mt-1">No logré entender la instrucción</p>
+                    </div>
+                </button>
+
+                <!-- Duda -->
+                <button onclick="sendAlert('participar')" class="bg-slate-800 hover:bg-slate-750 border-2 border-emerald-500/50 hover:border-emerald-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-emerald-500/20 text-emerald-400 p-4 rounded-2xl group-hover:bg-emerald-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-hand"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-0.5">Participación</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">Tengo una duda</h3>
+                        <p class="text-xs text-slate-400 mt-1">Quiero aportar o preguntar algo</p>
+                    </div>
+                </button>
+
+                <!-- Pausa Sensorial -->
+                <button onclick="sendAlert('pausa')" class="bg-slate-800 hover:bg-slate-750 border-2 border-sky-500/50 hover:border-sky-500 p-5 rounded-2xl flex items-center gap-4 text-left transition-all active:scale-95 shadow-lg group">
+                    <div class="bg-sky-500/20 text-sky-400 p-4 rounded-2xl group-hover:bg-sky-500 group-hover:text-white transition-all text-3xl flex-shrink-0">
+                        <i class="fa-solid fa-brain"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-sky-400 uppercase tracking-wider block mb-0.5">Bienestar</span>
+                        <h3 class="text-lg font-bold text-white leading-tight">Pausa sensorial</h3>
+                        <p class="text-xs text-slate-400 mt-1">Necesito un minuto de silencio</p>
+                    </div>
+                </button>
+
+            </div>
+        </div>
+
+
+        <!-- ================= VISTA PROFESOR ================= -->
+        <div id="teacherView" class="hidden flex-1 flex-col gap-6">
+            
+            <div class="flex flex-wrap justify-between items-center gap-4 bg-slate-800 p-4 rounded-2xl border border-slate-700">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span class="inline-block w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Panel de Monitoreo de Alertas
+                    </h2>
+                    <p class="text-xs text-slate-400">Escuchando solicitudes en vivo de la <span id="teacherRoomLabel" class="font-bold text-indigo-400">SALA-1</span></p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="playTestSound()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-xs font-medium rounded-lg text-slate-200 transition">
+                        <i class="fa-solid fa-volume-high mr-1"></i> Probar Audio
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenedor de Alertas Activas -->
+            <div id="alertsContainer" class="space-y-4">
+                <div class="bg-slate-800/50 border border-dashed border-slate-700 rounded-2xl p-12 text-center text-slate-500">
+                    <i class="fa-solid fa-mug-hot text-4xl mb-3 text-slate-600"></i>
+                    <p class="text-base font-semibold text-slate-400">No hay solicitudes pendientes</p>
+                    <p class="text-xs text-slate-500 mt-1">Las solicitudes enviadas por los alumnos aparecerán aquí en tiempo real.</p>
+                </div>
+            </div>
+
+            <!-- Historial Reciente -->
+            <div class="mt-8">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial de la sesión
+                </h3>
+                <div id="historyContainer" class="bg-slate-800/30 border border-slate-800 rounded-xl p-4 text-xs text-slate-500 min-h-[60px] flex items-center justify-center">
+                    Aún no se han atendido solicitudes en esta sesión.
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 border-t border-slate-800 py-3 text-center text-xs text-slate-500">
+        AulaSilenciosa — Sistema accesible e inclusivo en la nube por Internet
+    </footer>
+
+    <!-- LÓGICA DE JAVASCRIPT -->
+    <script>
+        // Configuración Global
+        const CONFIG = {
+            alertTypes: {
+                bano: {
+                    titulo: 'Baño urgente',
+                    categoria: 'URGENCIA CRÍTICA',
+                    color: 'red',
+                    icono: 'fa-restroom',
+                    mensaje: 'El alumno necesita salir al servicio higiénico inmediatamente.'
+                },
+                enfermeria: {
+                    titulo: 'Me siento mal / Enfermería',
+                    categoria: 'SALUD / SALA DE AUXILIO',
+                    color: 'red',
+                    icono: 'fa-kit-medical',
+                    mensaje: 'El alumno reporta dolor, malestar físico o indisposición.'
+                },
+                rapido: {
+                    titulo: 'Va muy rápido',
+                    categoria: 'RITMO DE CLASE',
+                    color: 'amber',
+                    icono: 'fa-gauge-high',
+                    mensaje: 'Solicita reducir la velocidad del contenido o explicación.'
+                },
+                repetir: {
+                    titulo: '¿Puede repetir?',
+                    categoria: 'COMPRENSIÓN',
+                    color: 'amber',
+                    icono: 'fa-rotate-left',
+                    mensaje: 'No se comprendió el último punto explicativo.'
+                },
+                participar: {
+                    titulo: 'Tengo una duda / Participación',
+                    categoria: 'PARTICIPACIÓN',
+                    color: 'emerald',
+                    icono: 'fa-hand',
+                    mensaje: 'El alumno solicita turno de palabra o aclarar una duda.'
+                },
+                pausa: {
+                    titulo: 'Pausa sensorial',
+                    categoria: 'BIENESTAR EMOCIONAL',
+                    color: 'sky',
+                    icono: 'fa-brain',
+                    mensaje: 'El alumno requiere 1 minuto de autorregulación o pausa silenciosa.'
+                }
+            }
+        };
+
+        let currentRole = 'estudiante';
+        let currentRoom = 'SALA-1';
+        let activeEventSource = null;
+        let pendingAlerts = [];
+        let historyAlerts = [];
+        let currentStudentAlertId = null;
+
+        // Inicialización
+        window.addEventListener('DOMContentLoaded', () => {
+            // Leer parámetros de URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const modeParam = urlParams.get('modo');
+            const roomParam = urlParams.get('sala');
+            const alertParam = urlParams.get('alerta');
+
+            if (roomParam) {
+                currentRoom = roomParam.trim().toUpperCase();
+                document.getElementById('roomInput').value = currentRoom;
+            }
+
+            if (modeParam === 'profesor') {
+                switchRole('profesor');
+            } else {
+                switchRole('estudiante');
+            }
+
+            // Si viene una alerta directa desde URL (ej. enlaces)
+            if (alertParam && CONFIG.alertTypes[alertParam]) {
+                sendAlert(alertParam);
+            }
+        });
+
+        // Cambiar de Rol (Alumno / Profesor)
+        function switchRole(role) {
+            currentRole = role;
+            const btnStudent = document.getElementById('btnRoleStudent');
+            const btnTeacher = document.getElementById('btnRoleTeacher');
+            const viewStudent = document.getElementById('studentView');
+            const viewTeacher = document.getElementById('teacherView');
+
+            if (role === 'estudiante') {
+                btnStudent.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all bg-indigo-600 text-white shadow";
+                btnTeacher.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-white";
+                viewStudent.classList.remove('hidden');
+                viewTeacher.classList.add('hidden');
+            } else {
+                btnTeacher.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all bg-indigo-600 text-white shadow";
+                btnStudent.className = "px-3 py-1.5 text-xs font-semibold rounded-md transition-all text-slate-400 hover:text-white";
+                viewTeacher.classList.remove('hidden');
+                viewTeacher.classList.add('flex');
+                viewStudent.classList.add('hidden');
+            }
+
+            connectToRoom();
+        }
+
+        // Cambiar Código de Sala
+        function changeRoom() {
+            const input = document.getElementById('roomInput');
+            currentRoom = input.value.trim().toUpperCase() || 'SALA-1';
+            input.value = currentRoom;
+            document.getElementById('teacherRoomLabel').innerText = currentRoom;
+            connectToRoom();
+        }
+
+        // Conectar a la sala mediante ntfy.sh (Server-Sent Events)
+        function connectToRoom() {
+            if (activeEventSource) {
+                activeEventSource.close();
+            }
+
+            const cleanRoom = currentRoom.replace(/[^A-Z0-9]/g, '');
+            
+            if (currentRole === 'profesor') {
+                // El profesor escucha el canal de alertas del alumno
+                const topicAlerts = `aula_silenciosa_${cleanRoom}`;
+                activeEventSource = new EventSource(`https://ntfy.sh/${topicAlerts}/sse`);
+                
+                activeEventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.message) {
+                            const payload = JSON.parse(data.message);
+                            handleIncomingTeacherAlert(payload);
+                        }
+                    } catch (e) {
+                        // En caso de texto plano
+                        console.log('Mensaje recibido:', event.data);
+                    }
+                };
+            } else {
+                // El alumno escucha el canal de confirmaciones del profesor
+                const topicConfirm = `aula_silenciosa_${cleanRoom}_confirm`;
+                activeEventSource = new EventSource(`https://ntfy.sh/${topicConfirm}/sse`);
+
+                activeEventSource.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        if (data.message) {
+                            const payload = JSON.parse(data.message);
+                            if (payload.action === 'visto' && payload.id === currentStudentAlertId) {
+                                handleStudentConfirmation();
+                            }
+                        }
+                    } catch (e) {
+                        console.log('Confirmación recibida:', event.data);
+                    }
+                };
+            }
+        }
+
+        // ENVIAR ALERTA (ALUMNO -> PROFESOR)
+        async function sendAlert(typeKey) {
+            const alertInfo = CONFIG.alertTypes[typeKey];
+            if (!alertInfo) return;
+
+            const alertId = 'ALT-' + Date.now();
+            currentStudentAlertId = alertId;
+
+            const payload = {
+                id: alertId,
+                typeKey: typeKey,
+                titulo: alertInfo.titulo,
+                categoria: alertInfo.categoria,
+                color: alertInfo.color,
+                icono: alertInfo.icono,
+                mensaje: alertInfo.mensaje,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+            };
+
+            // Mostrar estado inmediato de "Esperando al profesor" en la pantalla del alumno
+            showStudentStatusCard('waiting', payload);
+
+            const cleanRoom = currentRoom.replace(/[^A-Z0-9]/g, '');
+            const topicAlerts = `aula_silenciosa_${cleanRoom}`;
+
+            try {
+                await fetch(`https://ntfy.sh/${topicAlerts}`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true
+                });
+            } catch (err) {
+                console.error('Error al transmitir la alerta:', err);
+            }
+        }
+
+        // MARCAR VISTO (PROFESOR -> ALUMNO)
+        async function markAsSeen(alertId) {
+            const cleanRoom = currentRoom.replace(/[^A-Z0-9]/g, '');
+            const topicConfirm = `aula_silenciosa_${cleanRoom}_confirm`;
+
+            const payload = {
+                action: 'visto',
+                id: alertId,
+                timestamp: new Date().toLocaleTimeString()
+            };
+
+            try {
+                await fetch(`https://ntfy.sh/${topicConfirm}`, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'application/json' },
+                    keepalive: true
+                });
+
+                // Mover de pendientes a historial
+                const index = pendingAlerts.findIndex(a => a.id === alertId);
+                if (index !== -1) {
+                    const alert = pendingAlerts.splice(index, 1)[0];
+                    historyAlerts.unshift(alert);
+                    renderTeacherAlerts();
+                    renderTeacherHistory();
+                }
+            } catch (err) {
+                console.error('Error al enviar visto:', err);
+            }
+        }
+
+        // Recibir alerta en la pantalla del profesor
+        function handleIncomingTeacherAlert(payload) {
+            // Evitar duplicados
+            if (pendingAlerts.some(a => a.id === payload.id)) return;
+
+            pendingAlerts.unshift(payload);
+            renderTeacherAlerts();
+            playAlertSound();
+        }
+
+        // Renderizar Tarjetas de Alerta en la Pantalla del Profesor
+        function renderTeacherAlerts() {
+            const container = document.getElementById('alertsContainer');
+
+            if (pendingAlerts.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-slate-800/50 border border-dashed border-slate-700 rounded-2xl p-12 text-center text-slate-500">
+                        <i class="fa-solid fa-mug-hot text-4xl mb-3 text-slate-600"></i>
+                        <p class="text-base font-semibold text-slate-400">No hay solicitudes pendientes</p>
+                        <p class="text-xs text-slate-500 mt-1">Las solicitudes enviadas por los alumnos aparecerán aquí en tiempo real.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = pendingAlerts.map(alert => `
+                <div class="bg-slate-800 border-2 border-${alert.color}-500 rounded-2xl p-5 shadow-2xl pulse-${alert.color === 'red' ? 'red' : 'green'} transition-all">
+                    <div class="flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-${alert.color}-500/20 text-${alert.color}-400 p-4 rounded-2xl text-3xl">
+                                <i class="fa-solid ${alert.icono}"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold bg-${alert.color}-500/20 text-${alert.color}-400 border border-${alert.color}-500/30 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                        ${alert.categoria}
+                                    </span>
+                                    <span class="text-xs text-slate-400">
+                                        <i class="fa-regular fa-clock mr-1"></i>${alert.timestamp}
+                                    </span>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-white mt-1">${alert.titulo}</h3>
+                                <p class="text-sm text-slate-300 mt-0.5">${alert.mensaje}</p>
+                            </div>
+                        </div>
+                        <button onclick="markAsSeen('${alert.id}')" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check-double text-lg"></i>
+                            MARCAR VISTO / EN CAMINO
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Renderizar Historial en el Panel del Profesor
+        function renderTeacherHistory() {
+            const container = document.getElementById('historyContainer');
+            if (historyAlerts.length === 0) return;
+
+            container.innerHTML = `
+                <div class="w-full space-y-2">
+                    ${historyAlerts.slice(0, 5).map(item => `
+                        <div class="flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid ${item.icono} text-${item.color}-400 text-sm"></i>
+                                <span class="font-bold text-slate-300">${item.titulo}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-500">
+                                <span>${item.timestamp}</span>
+                                <span class="text-emerald-400 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-check"></i> Atendido
+                                </span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Mostrar tarjeta de estado en el teléfono del estudiante
+        function showStudentStatusCard(state, payload) {
+            const card = document.getElementById('studentStatusCard');
+            card.classList.remove('hidden');
+
+            if (state === 'waiting') {
+                card.innerHTML = `
+                    <div class="bg-amber-500/10 border-2 border-amber-500/50 rounded-2xl p-6 text-center shadow-xl">
+                        <div class="inline-block bg-amber-500/20 text-amber-400 p-4 rounded-full text-3xl mb-3 animate-spin">
+                            <i class="fa-solid fa-spinner"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white">Solicitud enviada a la sala (${currentRoom})</h3>
+                        <p class="text-base text-amber-300 font-medium mt-1">Enviado: ${payload.titulo}</p>
+                        <p class="text-xs text-slate-400 mt-2">Esperando que el profesor la marque como vista...</p>
+                    </div>
+                `;
+            } else if (state === 'confirmed') {
+                card.innerHTML = `
+                    <div class="bg-emerald-500/20 border-2 border-emerald-500 rounded-2xl p-6 text-center shadow-2xl pulse-green">
+                        <div class="inline-block bg-emerald-500 text-white p-4 rounded-full text-4xl mb-3">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                        </div>
+                        <h3 class="text-2xl font-extrabold text-white">✅ ¡SOLICITUD ATENDIDA!</h3>
+                        <p class="text-lg text-emerald-300 font-semibold mt-1">Tu profesor ya vio tu alerta y viene en camino.</p>
+                        <p class="text-xs text-slate-400 mt-3">Esta notificación se cerrará automáticamente...</p>
+                    </div>
+                `;
+
+                // Sonido de confirmación en el teléfono
+                playSuccessSound();
+
+                setTimeout(() => {
+                    card.classList.add('hidden');
+                    currentStudentAlertId = null;
+                }, 6000);
+            }
+        }
+
+        // Confirmación recibida en el teléfono
+        function handleStudentConfirmation() {
+            showStudentStatusCard('confirmed', null);
+        }
+
+        // Efectos de Sonido mediante Web Audio API
+        function playAlertSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+                osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch (e) {
+                console.log('Audio no soportado o bloqueado');
+            }
+        }
+
+        function playSuccessSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                console.log('Audio no soportado');
+            }
+        }
+
+        function playTestSound() {
+            playAlertSound();
+        }
+    </script>
+</body>
+</html>
